@@ -22,7 +22,6 @@
 
 #include <vector>
 #include <vp/vp.hpp>
-#include <queue>
 
 
 

@@ -102,6 +102,10 @@ class L1_subsystem(gvsoc.systree.Component):
         #
         # Bindings
         #
+        
+        # DMA interconnections
+        # cluster_ico "l1" -> pe_icos[0] "input"
+        self.bind(self, 'input', pe_icos[0], 'input')
 
         # Per-PE interconnects
         for i in range(0, nb_pe):
