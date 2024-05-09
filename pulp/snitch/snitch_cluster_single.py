@@ -29,7 +29,6 @@ from pulp.idma.snitch_dma import SnitchDma
 from pulp.snitch.zero_mem import ZeroMem
 from interco.bus_watchpoint import Bus_watchpoint
 from pulp.snitch.sequencer import Sequencer
-from pulp.spatz.cluster_registers import Cluster_registers
 from elftools.elf.elffile import *
 import gvsoc.runner as gvsoc
 
@@ -64,7 +63,6 @@ class Soc(st.Component):
             binary = args.binary
 
         # Memory Components
-        # rom = memory.Memory(self, 'rom', size=0x10000, width_log2=3, stim_file=self.get_file_path('pulp/chips/spatz/rom.bin'))
         rom = memory.Memory(self, 'rom', size=0x10000, width_log2=3, stim_file=self.get_file_path('pulp/snitch/bootrom.bin'))
 
         mem = memory.Memory(self, 'mem', size=0x1000000, width_log2=6, atomics=True)
@@ -109,17 +107,12 @@ class Soc(st.Component):
         dma_ico.add_mapping('rom', base=0x00001000, remove_offset=0x00001000, size=0x10000)
         self.bind(dma_ico, 'rom', rom, 'input')
         
-        ico.add_mapping('zero_mem', base=0x10030000, remove_offset=0x10030000, size=0x0010000)
-        self.bind(ico, 'zero_mem', zero_mem, 'input')
         dma_ico.add_mapping('zero_mem', base=0x10030000, remove_offset=0x10030000, size=0x0010000)
         self.bind(dma_ico, 'zero_mem', zero_mem, 'input')
         
         self.bind(l1, 'cluster_ico', ico, 'input')
         self.bind(ico, 'l1', l1, 'input')
         ico.add_mapping('l1', base=0x10000000, remove_offset=0x10000000, size=0x20000)
-        # self.bind(l1, 'cluster_ico', dma_ico, 'input')
-        # self.bind(dma_ico, 'l1', l1, 'input')
-        # dma_ico.add_mapping('l1', base=0x10000000, remove_offset=0x10000000, size=0x20000)
         
         self.bind(icache, 'refill', dma_ico, 'input')
 
@@ -142,8 +135,6 @@ class Soc(st.Component):
 
 
         # Cluster peripherals
-        # cluster_registers = Cluster_registers(self, 'cluster_registers', boot_addr=entry, nb_cores=nb_cores)
-        # ico.add_mapping('cluster_registers', base=0x00120000, remove_offset=0x00120000, size=0x1000)
         cluster_registers = ClusterRegisters(self, 'cluster_registers', boot_addr=entry, nb_cores=nb_cores)
         ico.add_mapping('cluster_registers', base=0x10020000, remove_offset=0x10020000, size=0x10000)
         self.bind(ico, 'cluster_registers', cluster_registers, 'input')
@@ -169,7 +160,7 @@ class Soc(st.Component):
             # Sync all core complex by integer cores.
             self.bind(int_cores[core_id], 'barrier_req', cluster_registers, f'barrier_req_{core_id}')
             self.bind(cluster_registers, f'barrier_ack', int_cores[core_id], 'barrier_ack')
-            # cluster_registers.o_EXTERNAL_IRQ(core_id, int_cores[core_id].i_IRQ(19))
+            cluster_registers.o_EXTERNAL_IRQ(core_id, int_cores[core_id].i_IRQ(19))
 
         for core_id in range(0, nb_cores):
             # Buswatchpoint
