@@ -47,7 +47,7 @@ void Neureka::clear_all() {
   this->load_i_fbuf_lim = 0;
   this->load_j_fbuf_lim = 0;
   this->load_k_in_lim = 0;
-  this->load_padding = {0, 0}; // std::vector<uint32_t>
+  this->load_padding = {0, 0};
   this->load_i_fbuf = 0;
   this->load_j_fbuf = 0;
 
